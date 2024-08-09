@@ -242,7 +242,7 @@ printf("The address is: %s\n", ip6);
 Those functions won't do any nameserver DNS lookup, but this can be done with the function `getaddrinfo()`.
 
 ### 3.8 Private or disconnected Networks
-	Private networks are often protected by firewalls and use Network Address Translation (NAT) to translate internal IP addresses to external ones. NAT allows multiple devices to share the same external IP address. Private networks typically use reserved IP address ranges such as 10.x.x.x and 192.168.x.x. IPv6 also has private networks starting with fdXX: or fcXX:. NAT and IPv6 are not commonly used together.
+Private networks are often protected by firewalls and use Network Address Translation (NAT) to translate internal IP addresses to external ones. NAT allows multiple devices to share the same external IP address. Private networks typically use reserved IP address ranges such as 10.x.x.x and 192.168.x.x. IPv6 also has private networks starting with fdXX: or fcXX:. NAT and IPv6 are not commonly used together.
 
 
 ## Chapter 4: Jumping from IPv4 to IPv6

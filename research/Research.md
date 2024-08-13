@@ -9,6 +9,7 @@ This includes reading relevant Information about the follwoing topics:
 # First Ressources to get started
 1. Networking in C/C++:
 	- Beej's Guide to Network Programming: http://beej.us/guide/bgnet/
+	- The Linux socket API explained: https://www.youtube.com/watch?v=XXfdzwEsxFk
 	- "TCP/IP Sockets in C: Practical Guide for Programmers" by Michael J. Donahoo and Kenneth L. Calvert
 2. HTTP Protocol:
 	- "HTTP: The Definitive Guide" by David Gourley and Brian Totty

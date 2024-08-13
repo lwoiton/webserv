@@ -19,7 +19,7 @@ The main objectives of this project are:
 
 ## Our Approach
 
-In tackling this project, We have adopted the following approach:
+In tackling this project, we have adopted the following approach:
 
 1. Extensive research on HTTP protocols and server architectures.
 2. Careful study of relevant RFCs to ensure compliance with HTTP standards.

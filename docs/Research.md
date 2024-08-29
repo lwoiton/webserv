@@ -19,3 +19,9 @@ This includes reading relevant Information about the follwoing topics:
 	- "Effective Modern C++" by Scott Meyers (Chapter 6: "Lambda Expressions")
 4. File I/O in C++:
 	- "C++ Primer" by Stanley B. Lippman, Josée Lajoie, and Barbara E. Moo (Chapter 10: "Input and Output")
+
+# Webserver in C++
+1. Part 1: https://www.youtube.com/watch?v=YwHErWJIh6Y&list=PLYyIARrDQ8XOaStulZwKYEMDGdK11XbJs&index=1
+2. Part 2: https://www.youtube.com/watch?v=pTIZ9YjE3Pw&list=PLYyIARrDQ8XOaStulZwKYEMDGdK11XbJs&index=2
+3. Part 3: https://www.youtube.com/watch?v=bEsRapsPAWI&list=PLYyIARrDQ8XOaStulZwKYEMDGdK11XbJs&index=3
+4. Part 4: https://www.youtube.com/watch?v=N49UyTlUXp4&list=PLYyIARrDQ8XOaStulZwKYEMDGdK11XbJs&index=4

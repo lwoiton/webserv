@@ -314,6 +314,7 @@ freeaddrinfo(servinfo); // free the linked-list
 We make the call. if the call is not successfull, we can print the error using the `gai_strerror()` function.
 If no error occours, `servinfo` will point to linked list of `struct addrinfo`, each of which contains `struct sockaddr`.
 At the end we should free the allocated structures by calling `freeaddrinfo(servinfo)`.
+
 Here’s a sample call if you’re a client who wants to connect to a particular server, say “www.example.net” port 3490:
 ```c
 int status;

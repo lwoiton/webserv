@@ -1,0 +1,16 @@
+# **************************************************************************** #
+#                                                                              #
+#                                                         :::      ::::::::    #
+#    server_config.txt                                  :+:      :+:    :+:    #
+#                                                     +:+ +:+         +:+      #
+#    By: lwoiton <lwoiton@student.42prague.com>     +#+  +:+       +#+         #
+#                                                 +#+#+#+#+#+   +#+            #
+#    Created: 2024/08/18 18:31:00 by lwoiton           #+#    #+#              #
+#    Updated: 2024/08/28 14:17:01 by lwoiton          ###   ########.fr        #
+#                                                                              #
+# **************************************************************************** #
+
+server {
+    listen 8080;
+    # You can add other directives here, but they will be ignored in this simple implementation
+}

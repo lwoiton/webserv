@@ -6,7 +6,7 @@
 #    By: lwoiton <lwoiton@student.42prague.com>     +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2024/06/08 11:27:34 by lwoiton           #+#    #+#              #
-#    Updated: 2024/08/06 22:06:39 by lwoiton          ###   ########.fr        #
+#    Updated: 2024/08/30 13:03:01 by lwoiton          ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -43,7 +43,7 @@ $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 -include $(DEPS)
 
 # Debug configuration
-debug: FLAGS += -g
+debug: FLAGS += -g -DDEBUG
 debug: re
 
 # Clean generated files

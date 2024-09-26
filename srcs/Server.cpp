@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lwoiton <lwoiton@student.42prague.com>     +#+  +:+       +#+        */
+/*   By: mnurlybe <mnurlybe@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/01 14:10:31 by lwoiton           #+#    #+#             */
-/*   Updated: 2024/09/01 15:07:23 by lwoiton          ###   ########.fr       */
+/*   Updated: 2024/09/26 18:22:38 by mnurlybe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -140,4 +140,5 @@ void	Server::handleExistingConnection(int epfd_index)
 			throw std::runtime_error(strerror(errno));
 	}
 }
+
 

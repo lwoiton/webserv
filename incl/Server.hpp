@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mnurlybe <mnurlybe@student.42.fr>          +#+  +:+       +#+        */
+/*   By: julienmoigno <julienmoigno@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/16 11:17:56 by lwoiton           #+#    #+#             */
-/*   Updated: 2024/09/28 13:02:15 by mnurlybe         ###   ########.fr       */
+/*   Updated: 2024/09/28 17:30:59 by julienmoign      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,6 +36,7 @@
 #include "SimpleSocket.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
+#include "Cgi.hpp"
 //#include "RequestHandler.hpp"
 
 #include <fstream> //TO DELETE AFTER successful routing and Repsonse implementations

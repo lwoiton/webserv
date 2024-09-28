@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lwoiton <lwoiton@student.42prague.com>     +#+  +:+       +#+        */
+/*   By: julienmoigno <julienmoigno@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/29 13:45:16 by lwoiton           #+#    #+#             */
-/*   Updated: 2024/08/30 14:31:50 by lwoiton          ###   ########.fr       */
+/*   Updated: 2024/09/28 14:58:59 by julienmoign      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -31,6 +31,8 @@ class Request
 				Request(void);
 		void	parse(const std::string& rawRequest);
 		void	printRequest(void);
+		// check if the request is a CGI request
+		int		isCGI(void);
 };
 
 #endif

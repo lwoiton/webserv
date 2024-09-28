@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mnurlybe <mnurlybe@student.42.fr>          +#+  +:+       +#+        */
+/*   By: julienmoigno <julienmoigno@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/01 14:10:31 by lwoiton           #+#    #+#             */
-/*   Updated: 2024/09/28 13:20:20 by mnurlybe         ###   ########.fr       */
+/*   Updated: 2024/09/28 20:37:00 by julienmoign      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -134,14 +134,79 @@ void	Server::handleExistingConnection(int epfd_index)
 		std::cout << "=============printRequest===============" << std::endl;
 		req.printRequest();
 		std::cout << "========================================" << std::endl;
+
+		/* implement CGI here */
+		// 1. check if the request is a CGI request
+		std::cout << "~~~~~~ isCGI: " << req.isCGI() << std::endl;
+		// 2. if it is a CGI request, execute the CGI script
+		// 3. if it is not a CGI request, handle the request
 		
-		res.setStatus(200, "OK");
-		res.addHeader("Content-Type", "text/html");
-		res.setBody(readFile("./public/index.html"));
-		res.addHeader("Content-Length", sizeToString(res.getBody().length()));
-		std::string str = res.serialize();
-		if (send(this->_events[epfd_index].data.fd, str.c_str(), str.length(), 0) == -1)
-			throw std::runtime_error(strerror(errno));
+		if (req.isCGI())
+		{
+			// execute CGI script
+			// CGI cgi;
+			Environment env(3);
+			std::string _python = "/usr/bin/python3";
+			std::string _path_to_script = "./var/www/cgi-bin/hello.py";
+			printf("HELLO\n");
+			char * _argv[] = {const_cast<char*>(_python.c_str()), const_cast<char*>(_path_to_script.c_str()), NULL};
+			env.AddEnvVar(0, "REQUEST_METHOD", "GET");
+			env.AddEnvVar(1, "SCRIPT_FILENAME", _path_to_script.c_str());
+			
+			// pipe for communication between parent and child
+			int pipefd[2];
+			if (pipe(pipefd) == -1) {
+				throw std::runtime_error("pipe");
+			}
+
+
+			pid_t pid = fork();
+			if (pid < 0) {
+				throw std::runtime_error("fork");
+			}
+			else if (pid == 0)  // child
+			{
+				printf("this is a child process\n");
+				close(pipefd[0]);
+				dup2(pipefd[1], STDOUT_FILENO);
+				close(pipefd[1]);
+				if (execve(_python.c_str(), _argv, env.getEnv()) == -1)
+					throw std::runtime_error("execve");
+			}
+			else // parent
+			{
+				close(pipefd[1]);
+				char buf[10000];
+				int nbytes = read(pipefd[0], buf, sizeof(buf)); // don't forget to do it in a loop later
+				printf("nbytes: %d\n", nbytes);
+				if (nbytes == -1) {
+					throw std::runtime_error("read");
+				}
+				buf[nbytes] = '\0';
+				printf("buf: %s\n", buf);
+				res.setStatus(200, "OK");
+				res.addHeader("Content-Type", "text/html");
+				res.addHeader("Content-Length", sizeToString(nbytes));
+				res.setBody(buf);
+				std::string str = res.serialize();
+				if (send(this->_events[epfd_index].data.fd, str.c_str(), str.length(), 0) == -1)
+					throw std::runtime_error(strerror(errno));
+				close(pipefd[0]);
+				int status;
+				waitpid(pid, &status, 0);
+			}		
+		}
+		else
+		{
+			// handle the request
+			res.setStatus(200, "OK");
+			res.addHeader("Content-Type", "text/html");
+			res.setBody(readFile("./public/index.html"));
+			res.addHeader("Content-Length", sizeToString(res.getBody().length()));
+			std::string str = res.serialize();
+			if (send(this->_events[epfd_index].data.fd, str.c_str(), str.length(), 0) == -1)
+				throw std::runtime_error(strerror(errno));
+		}
 	}
 }
 

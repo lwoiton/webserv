@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mnurlybe <mnurlybe@student.42.fr>          +#+  +:+       +#+        */
+/*   By: julienmoigno <julienmoigno@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/29 14:15:39 by lwoiton           #+#    #+#             */
-/*   Updated: 2024/09/28 13:25:12 by mnurlybe         ###   ########.fr       */
+/*   Updated: 2024/09/28 15:08:27 by julienmoign      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -98,4 +98,13 @@ void	Request::printRequest(void)
 		std::cout << it->first << ": " << it->second  << "\r\n";
 	std::cout << "=============  body ===================" << std::endl;
 	std::cout << this->_body << std::endl;
+}
+
+// check if the request is a CGI request then return 1 else return 0
+int Request::isCGI(void)
+{
+	// identify if uri contains "cgi-bin"
+	if (this->_uri.find("cgi-bin") != std::string::npos)
+		return (1);
+	return (0);
 }

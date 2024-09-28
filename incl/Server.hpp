@@ -6,7 +6,7 @@
 /*   By: mnurlybe <mnurlybe@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/16 11:17:56 by lwoiton           #+#    #+#             */
-/*   Updated: 2024/09/26 18:22:42 by mnurlybe         ###   ########.fr       */
+/*   Updated: 2024/09/28 13:02:15 by mnurlybe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -57,7 +57,6 @@ class Server
 		void	addToEpoll(int new_fd, int event_flag, int _op);
 		void	handleNewConnection();
 		void	handleExistingConnection(int index_pfds);
-		void	initialize_env();
 };
 
 #endif

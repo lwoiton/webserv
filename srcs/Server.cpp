@@ -6,7 +6,7 @@
 /*   By: mnurlybe <mnurlybe@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/01 14:10:31 by lwoiton           #+#    #+#             */
-/*   Updated: 2024/09/26 18:22:38 by mnurlybe         ###   ########.fr       */
+/*   Updated: 2024/09/28 13:20:20 by mnurlybe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,7 +97,9 @@ void	Server::handleNewConnection(void)
         fcntl(new_sfd, F_SETFL, flags | O_NONBLOCK);
         addToEpoll(new_sfd, EPOLLIN, EPOLL_CTL_ADD);
 		char remoteIP[INET6_ADDRSTRLEN];
+		std::cout << "============================" << std::endl;
 		std::cout << "server: new connection from " << inet_ntop(remoteaddr.ss_family, get_in_addr((struct sockaddr*)&remoteaddr), remoteIP, INET6_ADDRSTRLEN) << " on socket " << new_sfd << '\n' ;
+		std::cout << "============================" << std::endl;
 	}
 }
 
@@ -129,7 +131,9 @@ void	Server::handleExistingConnection(int epfd_index)
 		Response	res;
 
 		req.parse(buf);
+		std::cout << "=============printRequest===============" << std::endl;
 		req.printRequest();
+		std::cout << "========================================" << std::endl;
 		
 		res.setStatus(200, "OK");
 		res.addHeader("Content-Type", "text/html");

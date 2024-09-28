@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lwoiton <lwoiton@student.42prague.com>     +#+  +:+       +#+        */
+/*   By: mnurlybe <mnurlybe@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/29 14:15:39 by lwoiton           #+#    #+#             */
-/*   Updated: 2024/09/01 15:12:14 by lwoiton          ###   ########.fr       */
+/*   Updated: 2024/09/28 13:25:12 by mnurlybe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -44,8 +44,10 @@ void	Request::parse(const std::string& rawRequest)
 	std::istringstream	stream(rawRequest);
 	std::string			line;
 
+	std::cout << "=============Raw request===============" << std::endl;
 	std::cout << "Raw request length: " << rawRequest.length() << std::endl;
     std::cout << "Raw request:\n" << rawRequest << std::endl;  // Print the entire raw request
+	std::cout << "============================" << std::endl;
 	// Parse request line
 	if (!std::getline(stream, line))
 		throw std::runtime_error("Empty request");
@@ -89,8 +91,11 @@ void	Request::parse(const std::string& rawRequest)
 
 void	Request::printRequest(void)
 {
-	std::cout << this->_method << " " << this->_uri << " " << this->_version << "\r\n";
+	std::cout << "=============method, uri, version ===================" << std::endl;
+	std::cout << "_method: " << this->_method << ", _uri: " << this->_uri << ", _version: " << this->_version << "\r\n";
+	std::cout << "============= header ===================" << std::endl;
 	for (std::map<std::string, std::string>::const_iterator it = _header.begin(); it != _header.end(); ++it)
 		std::cout << it->first << ": " << it->second  << "\r\n";
+	std::cout << "=============  body ===================" << std::endl;
 	std::cout << this->_body << std::endl;
 }

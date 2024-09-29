@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: julienmoigno <julienmoigno@student.42.f    +#+  +:+       +#+        */
+/*   By: mnurlybe <mnurlybe@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/29 14:15:39 by lwoiton           #+#    #+#             */
-/*   Updated: 2024/09/28 15:08:27 by julienmoign      ###   ########.fr       */
+/*   Updated: 2024/09/29 15:05:28 by mnurlybe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -107,4 +107,8 @@ int Request::isCGI(void)
 	if (this->_uri.find("cgi-bin") != std::string::npos)
 		return (1);
 	return (0);
+}
+
+std::string Request::getBody() const {
+	return this->_body;
 }

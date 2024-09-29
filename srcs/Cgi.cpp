@@ -22,7 +22,7 @@ void Environment::AddEnvVar(int i, const char *key, const char *value) {
         env[i] = new char[len];
         std::strcpy(env[i], key);
         std::strcat(env[i], "=");
-        std::strcat(env[i], "value");
+        std::strcat(env[i], value);
     }
 }
 

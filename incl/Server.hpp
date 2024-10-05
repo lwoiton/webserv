@@ -6,7 +6,7 @@
 /*   By: julienmoigno <julienmoigno@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/16 11:17:56 by lwoiton           #+#    #+#             */
-/*   Updated: 2024/10/03 18:03:34 by julienmoign      ###   ########.fr       */
+/*   Updated: 2024/10/05 15:39:59 by julienmoign      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -66,7 +66,7 @@ class Server
 		
 		void	handleCGIRequest(int client_fd, Request &req, Response &res);
 		// void	handleGETCGI(int client_fd, Request &req, Response &res);
-		// void	handlePOSTCGI(int client_fd, Request &req, Response &res);
+		void	handlePOSTCGI(int client_fd, Request &req, Response &res, Environment &env, std::string _path_to_script, char * _argv[]);
 		
 };
 

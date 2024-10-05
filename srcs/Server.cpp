@@ -6,7 +6,7 @@
 /*   By: mnurlybe <mnurlybe@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/01 14:10:31 by lwoiton           #+#    #+#             */
-/*   Updated: 2024/10/05 18:02:38 by mnurlybe         ###   ########.fr       */
+/*   Updated: 2024/10/05 19:58:55 by mnurlybe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -148,6 +148,7 @@ void	Server::handleExistingConnection(int epfd_index)
 			res.addHeader("Content-Type", "text/html");
 			// res.setBody(readFile("./public/index.html"));
 			res.setBody(readFile("./public/form.html"));
+			// res.setBody(readFile("./public/upload_file.html"));
 			res.addHeader("Content-Length", sizeToString(res.getBody().length()));
 			std::string str = res.serialize();
 			if (send(this->_events[epfd_index].data.fd, str.c_str(), str.length(), 0) == -1)

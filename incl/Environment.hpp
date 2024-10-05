@@ -7,6 +7,8 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
+#include "Request.hpp"
+
 class Environment {
 
     public: 
@@ -16,24 +18,12 @@ class Environment {
     Environment(int n);
     ~Environment();
 
+    void	createEnv(Request &req, std::string _path_to_script);
     void AddEnvVar(int index, const char *key, const char *value);
     void printEnv() const;
     // getter
     char **getEnv() const { return env; }
 };
 
-
-// class CGI
-// {
-//     private:
-//         Environment env;
-//         std::string _python;
-//         std::string _path_to_script;
-//         char * _argv[];
-//     public:
-//         CGI(void);
-//         ~CGI(void);
-//         void executeCGI(void);
-// };
 
 #endif

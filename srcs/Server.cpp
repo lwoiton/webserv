@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mnurlybe <mnurlybe@student.42.fr>          +#+  +:+       +#+        */
+/*   By: julienmoigno <julienmoigno@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/01 14:10:31 by lwoiton           #+#    #+#             */
-/*   Updated: 2024/09/29 16:41:49 by mnurlybe         ###   ########.fr       */
+/*   Updated: 2024/10/03 22:17:22 by julienmoign      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -130,44 +130,96 @@ void	Server::handleExistingConnection(int epfd_index)
 		Request		req;
 		Response	res;
 
+		buf[nbytes] = '\0'; // null-terminate the received data as without it there is a cached data;
 		req.parse(buf);
 		std::cout << "=============printRequest===============" << std::endl;
 		req.printRequest();
 		std::cout << "========================================" << std::endl;
 
-		/* implement CGI here */
-		// 1. check if the request is a CGI request
 		std::cout << "~~~~~~ isCGI: " << req.isCGI() << std::endl;
-		// 2. if it is a CGI request, execute the CGI script
-		// 3. if it is not a CGI request, handle the request
-		
 		if (req.isCGI())
 		{
-			// execute CGI script
-			// CGI cgi;
-			Environment env(5);
-			std::string _python = "/usr/bin/python3";
-			std::string _path_to_script = "./var/www/cgi-bin/hello_get.py";
-			
-			char * _argv[] = {const_cast<char*>(_python.c_str()), const_cast<char*>(_path_to_script.c_str()), NULL}; //GET
-			// char * _argv[] = {const_cast<char*>(_path_to_script.c_str()), NULL}; //POST
-			env.AddEnvVar(0, "REQUEST_METHOD", "POST");
-			env.AddEnvVar(1, "SCRIPT_FILENAME", _path_to_script.c_str());
-			// env.AddEnvVar(2, "QUERY_STRING", "first_name=Malhar&last_name=Lathkar"); // important for GET request
-			env.AddEnvVar(2, "CONTENT_LENGTH", "39"); // important for POST
-			env.AddEnvVar(3, "CONTENT_TYPE", "application/x-www-form-urlencoded");
+			handleCGIRequest(this->_events[epfd_index].data.fd, req, res);
+		}
+		else
+		{
+			// handle the request
+			res.setStatus(200, "OK");
+			res.addHeader("Content-Type", "text/html");
+			// res.setBody(readFile("./public/index.html"));
+			res.setBody(readFile("./public/form.html"));
+			res.addHeader("Content-Length", sizeToString(res.getBody().length()));
+			std::string str = res.serialize();
+			if (send(this->_events[epfd_index].data.fd, str.c_str(), str.length(), 0) == -1)
+				throw std::runtime_error(strerror(errno));
+		}
+	}
+}
 
+// GET request ENV variable
+// MANDATORY:
+// Request method
+// Script filename or path info -> path to the script
+// Query string (for GET request only)
+// Server name -> It is the name of the server.
+// Server protocol -> It is the protocol used by the server.
+// Server port -> It is the port number of the server.
+// OPTIONAL:
+// HTTP_USER_AGENT -> It is name of the web browser.
+// Content-type
+// Content-length
+
+// POST request ENV variable
+// MANDATORY:
+// Request method +
+// Content-type +
+// Content-length +
+// Script filename or path info -> path to the script
+// Server name -> It is the name of the server. +
+// Server protocol -> It is the protocol used by the server. +
+// Server port -> It is the port number of the server. +
+// OPTIONAL:
+// HTTP_USER_AGENT -> It is name of the web browser.
+
+
+
+void Server::handleCGIRequest(int client_fd, Request &req, Response &res)
+{
+	
+			// create Environment variables
+			// Environment env(5);
+			// std::string _python = "/usr/bin/python3";
+			// std::string _path_to_script = "./var/www/cgi-bin/hello_get.py";
+			
+			// char * _argv[] = {const_cast<char*>(_python.c_str()), const_cast<char*>(_path_to_script.c_str()), NULL}; //GET
+			// // char * _argv[] = {const_cast<char*>(_path_to_script.c_str()), NULL}; //POST
+			// env.AddEnvVar(0, "REQUEST_METHOD", "POST");
+			// env.AddEnvVar(1, "SCRIPT_FILENAME", _path_to_script.c_str());
+			// // env.AddEnvVar(2, "QUERY_STRING", "first_name=Malhar&last_name=Lathkar"); // important for GET request
+			// env.AddEnvVar(2, "CONTENT_LENGTH", "39"); // important for POST
+			// env.AddEnvVar(3, "CONTENT_TYPE", "application/x-www-form-urlencoded");
+
+			printf("******************2**********************\n\n");
+			std::cout << "Print req.getBody()" << std::endl;
+			std::cout << req.getBody() << std::endl;
+			std::cout << "Print req.getBody().length()" << std::endl;
+			std::cout << req.getBody().length() << std::endl;
+			printf("****************************************\n\n");
+
+			
+			Environment env(9);
+			std::string _path_to_script = "./var/www" + req.getUri();
+			
+			env.createEnv(req, _path_to_script);
+			char * _argv[] = {const_cast<char*>(_path_to_script.c_str()), NULL}; 
+
+			
 			// pipe for communication between parent and child
 			int pipefd[2];
 			if (pipe(pipefd) == -1) {
 				throw std::runtime_error("pipe");
 			}
 			
-			std::cout << "Print req.getBody()" << std::endl;
-			std::cout << req.getBody() << std::endl;
-			std::cout << "Print req.getBody().length()" << std::endl;
-			std::cout << req.getBody().length() << std::endl;
-
 			// POST: Pipe for reading output from CGI script (stdout redirection)
 			int cgi_pipe[2];
 			if (pipe(cgi_pipe) == -1) {
@@ -217,7 +269,7 @@ void	Server::handleExistingConnection(int epfd_index)
 				res.addHeader("Content-Length", sizeToString(nbytes));
 				res.setBody(buf);
 				std::string str = res.serialize();
-				if (send(this->_events[epfd_index].data.fd, str.c_str(), str.length(), 0) == -1)
+				if (send(client_fd, str.c_str(), str.length(), 0) == -1)
 					throw std::runtime_error(strerror(errno));
 				close(cgi_pipe[0]);
 				int status;
@@ -244,20 +296,15 @@ void	Server::handleExistingConnection(int epfd_index)
 				// int status;
 				// waitpid(pid, &status, 0);
 			}		
-		}
-		else
-		{
-			// handle the request
-			res.setStatus(200, "OK");
-			res.addHeader("Content-Type", "text/html");
-			// res.setBody(readFile("./public/index.html"));
-			res.setBody(readFile("./public/form.html"));
-			res.addHeader("Content-Length", sizeToString(res.getBody().length()));
-			std::string str = res.serialize();
-			if (send(this->_events[epfd_index].data.fd, str.c_str(), str.length(), 0) == -1)
-				throw std::runtime_error(strerror(errno));
-		}
-	}
 }
 
+// void Server::handleGETCGI(int client_fd, Request &req, Response &res)
+// {
+	
+// }
+
+// void Server::handlePOSTCGI(int client_fd, Request &req, Response &res)
+// {
+	
+// }
 

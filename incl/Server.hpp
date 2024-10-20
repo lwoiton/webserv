@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mnurlybe <mnurlybe@student.42.fr>          +#+  +:+       +#+        */
+/*   By: lwoiton <lwoiton@student.42prague.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/16 11:17:56 by lwoiton           #+#    #+#             */
-/*   Updated: 2024/10/05 17:01:05 by mnurlybe         ###   ########.fr       */
+/*   Updated: 2024/10/20 14:45:19 by lwoiton          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -41,19 +41,22 @@
 
 #include <fstream> //TO DELETE AFTER successful routing and Repsonse implementations
 
-#define NUM_OF_EVENTS 100
+#define MAX_NUM_OF_EVENTS 100
+
+extern int g_signal_received;
 
 class Server
 {
 	private:
-		SimpleSocket *					_serverSocket;
-		struct epoll_event				_events[NUM_OF_EVENTS];
+		SimpleSocket 					*_serverSocket;
+		struct epoll_event				_events[MAX_NUM_OF_EVENTS];
 		int								_epoll_fd;
 		ConfigParser					_config;
 	public:
 				Server(void);
 				Server(const char* config_filename);
 		void	run();
+		void	shutdown(int events_num);
 		void	initializeSockets(void);
 		void	addToEpoll(int new_fd, int event_flag, int _op);
 		void	handleNewConnection();

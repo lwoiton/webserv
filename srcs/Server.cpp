@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mnurlybe <mnurlybe@student.42.fr>          +#+  +:+       +#+        */
+/*   By: lwoiton <lwoiton@student.42prague.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/01 14:10:31 by lwoiton           #+#    #+#             */
-/*   Updated: 2024/10/06 13:54:09 by mnurlybe         ###   ########.fr       */
+/*   Updated: 2024/10/20 14:50:53 by lwoiton          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -46,9 +46,10 @@ void    Server::addToEpoll(int new_fd, int event_flag, int _op)
 
 void    Server::run(void)
 {
-    while (true)
+	int events_num = 0;
+    while (!g_signal_received)
     {
-        int events_num = epoll_wait(this->_epoll_fd, this->_events, NUM_OF_EVENTS, -1);
+        events_num = epoll_wait(this->_epoll_fd, this->_events, MAX_NUM_OF_EVENTS, -1);
         if (events_num < 0)
             throw std::runtime_error(strerror(errno));
         for (int i = 0; i < events_num; ++i)
@@ -63,6 +64,22 @@ void    Server::run(void)
             }
         }
     }
+	std::cerr << "shutdown started\n";
+	this->shutdown(events_num);
+}
+
+void	Server::shutdown(int events_num)
+{
+	int index = 0;
+	while (events_num-- > 0)
+	{
+		close(this->_events[index++].data.fd);
+	}
+	close(this->_epoll_fd);
+	close(this->_serverSocket->get_socket());
+	delete this->_serverSocket;
+	std::cerr << "About to exit\n";
+	exit(EXIT_FAILURE);
 }
 
 void *get_in_addr(struct sockaddr *sa)

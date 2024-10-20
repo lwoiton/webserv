@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lwoiton <lwoiton@student.42prague.com>     +#+  +:+       +#+        */
+/*   By: mnurlybe <mnurlybe@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/01 14:10:31 by lwoiton           #+#    #+#             */
-/*   Updated: 2024/09/01 15:07:23 by lwoiton          ###   ########.fr       */
+/*   Updated: 2024/10/06 13:54:09 by mnurlybe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -97,7 +97,9 @@ void	Server::handleNewConnection(void)
         fcntl(new_sfd, F_SETFL, flags | O_NONBLOCK);
         addToEpoll(new_sfd, EPOLLIN, EPOLL_CTL_ADD);
 		char remoteIP[INET6_ADDRSTRLEN];
+		std::cout << "============================" << std::endl;
 		std::cout << "server: new connection from " << inet_ntop(remoteaddr.ss_family, get_in_addr((struct sockaddr*)&remoteaddr), remoteIP, INET6_ADDRSTRLEN) << " on socket " << new_sfd << '\n' ;
+		std::cout << "============================" << std::endl;
 	}
 }
 
@@ -128,16 +130,160 @@ void	Server::handleExistingConnection(int epfd_index)
 		Request		req;
 		Response	res;
 
+		buf[nbytes] = '\0'; // null-terminate the received data as without it there is a cached data;
 		req.parse(buf);
+		std::cout << "=============printRequest===============" << std::endl;
 		req.printRequest();
+		std::cout << "========================================" << std::endl;
+
+		std::cout << "~~~~~~ isCGI: " << req.isCGI() << std::endl;
+		if (req.isCGI())
+		{
+			handleCGIRequest(this->_events[epfd_index].data.fd, req, res);
+		}
+		else
+		{
+			// handle the request
+			res.setStatus(200, "OK");
+			res.addHeader("Content-Type", "text/html");
+			// res.setBody(readFile("./public/index.html"));
+			res.setBody(readFile("./public/form.html"));
+			// res.setBody(readFile("./public/upload_file.html"));
+			res.addHeader("Content-Length", sizeToString(res.getBody().length()));
+			std::string str = res.serialize();
+			if (send(this->_events[epfd_index].data.fd, str.c_str(), str.length(), 0) == -1)
+				throw std::runtime_error(strerror(errno));
+		}
+	}
+}
+
+void Server::handleCGIRequest(int client_fd, Request &req, Response &res)
+{
+			printf("******************2**********************\n\n");
+			std::cout << "Print req.getBody()" << std::endl;
+			std::cout << req.getBody() << std::endl;
+			std::cout << "Print req.getBody().length()" << std::endl;
+			std::cout << req.getBody().length() << std::endl;
+			printf("****************************************\n\n");
+
+			Environment env(9);
+			std::string _path_to_script = "./var/www" + req.getUri();
+			
+			env.createEnv(req, _path_to_script);
+			char * _argv[] = {const_cast<char*>(_path_to_script.c_str()), NULL}; 
+
+			if (req.getMethod() == "GET") {
+				handleGETCGI(client_fd, res, env, _path_to_script, _argv);
+			}
+			else if (req.getMethod() == "POST") {
+				handlePOSTCGI(client_fd, req, res, env, _path_to_script, _argv);	
+			}
+	
+}
+
+void Server::handleGETCGI(int client_fd, Response &res, Environment &env, std::string _path_to_script, char * _argv[])
+{
+
+			// pipe for communication between parent and child
+			int pipefd[2];
+			if (pipe(pipefd) == -1) {
+				throw std::runtime_error("pipe");
+			}
+			pid_t pid = fork();
+			if (pid < 0) {
+				throw std::runtime_error("fork");
+			}
+			else if (pid == 0)  // child
+			{
+				printf("this is a GET child process\n");
+				//*** GET request ***
+				std::cout << "PATH: " << _path_to_script << std::endl;
+				close(pipefd[0]);
+				dup2(pipefd[1], STDOUT_FILENO);
+				close(pipefd[1]);
+				if (execve(_path_to_script.c_str(), _argv, env.getEnv()) == -1)
+					printf("EXECVE FAILURE\n");
+			}
+			else // parent
+			{
+			
+				close(pipefd[1]);
+				char buf[10000];
+				int nbytes = read(pipefd[0], buf, sizeof(buf)); // don't forget to do it in a loop later
+				if (nbytes == -1) {
+					throw std::runtime_error("read");
+				}
+				buf[nbytes] = '\0';
+				printf("buf: %s\n", buf);
+				res.setStatus(200, "OK");
+				res.addHeader("Content-Type", "text/html");
+				res.addHeader("Content-Length", sizeToString(nbytes));
+				res.setBody(buf);
+				std::string str = res.serialize();
+				if (send(client_fd, str.c_str(), str.length(), 0) == -1)
+					throw std::runtime_error(strerror(errno));
+				close(pipefd[0]);
+				int status;
+				waitpid(pid, &status, 0);
+			}
+}
+
+void Server::handlePOSTCGI(int client_fd, Request &req, Response &res, Environment &env, std::string _path_to_script, char * _argv[])
+{
+
+		// pipe for communication between parent and child
+	int pipefd[2];
+	if (pipe(pipefd) == -1) {
+		throw std::runtime_error("pipe");
+	}
+	
+	// POST: Pipe for reading output from CGI script (stdout redirection)
+	int cgi_pipe[2];
+	if (pipe(cgi_pipe) == -1) {
+		throw std::runtime_error("pipe");
+	}
+	
+	pid_t pid = fork();
+	if (pid < 0) {
+		throw std::runtime_error("fork");
+	}
+	else if (pid == 0)  // child
+	{
+		printf("this is a POST child process\n");
 		
+		//*** POST request ***
+		close(pipefd[1]); // Close the write end of the POST data pipe (we only need to read from it)
+		dup2(pipefd[0], STDIN_FILENO); // Redirect stdin to read from the pipe (POST data)
+		close(pipefd[0]); // Close the original read end after dup2
+		
+		close(cgi_pipe[0]); // Close the read end of the CGI output pipe (we only need to write to it)
+		dup2(cgi_pipe[1], STDOUT_FILENO); // Redirect stdout to write to the pipe (CGI script output)
+		close(cgi_pipe[1]); // Close the original write end after dup2
+		
+		if (execve(_path_to_script.c_str(), _argv, env.getEnv()) == -1)
+			printf("EXECVE FAILURE\n");
+	}
+	else // parent
+	{		
+		//*** POST request ***
+		close(pipefd[0]);
+		write(pipefd[1], req.getBody().c_str(), req.getBody().length());
+		close(pipefd[1]);
+		close(cgi_pipe[1]);
+		char buf[1024];
+		int nbytes = read(cgi_pipe[0], buf, sizeof(buf)); // don't forget to do it in a loop later
+		buf[nbytes] = '\0';
+		printf("buf: {%s}\n", buf);
 		res.setStatus(200, "OK");
 		res.addHeader("Content-Type", "text/html");
-		res.setBody(readFile("./public/index.html"));
-		res.addHeader("Content-Length", sizeToString(res.getBody().length()));
+		res.addHeader("Content-Length", sizeToString(nbytes));
+		res.setBody(buf);
 		std::string str = res.serialize();
-		if (send(this->_events[epfd_index].data.fd, str.c_str(), str.length(), 0) == -1)
+		if (send(client_fd, str.c_str(), str.length(), 0) == -1)
 			throw std::runtime_error(strerror(errno));
+		close(cgi_pipe[0]);
+		int status;
+		waitpid(pid, &status, 0);
 	}
 }
 

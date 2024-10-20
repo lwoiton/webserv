@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.cpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lwoiton <lwoiton@student.42prague.com>     +#+  +:+       +#+        */
+/*   By: julienmoigno <julienmoigno@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/29 14:15:39 by lwoiton           #+#    #+#             */
-/*   Updated: 2024/09/01 15:12:14 by lwoiton          ###   ########.fr       */
+/*   Updated: 2024/10/03 19:50:24 by julienmoign      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -40,12 +40,14 @@ static std::string	trim(const std::string& str)
 	// field-name : OWS field-value OWS CRLF (\r\n)
 //parse body
 void	Request::parse(const std::string& rawRequest)
-{
+{	
 	std::istringstream	stream(rawRequest);
 	std::string			line;
 
+	std::cout << "=============Raw request===============" << std::endl;
 	std::cout << "Raw request length: " << rawRequest.length() << std::endl;
     std::cout << "Raw request:\n" << rawRequest << std::endl;  // Print the entire raw request
+	std::cout << "============================" << std::endl;
 	// Parse request line
 	if (!std::getline(stream, line))
 		throw std::runtime_error("Empty request");
@@ -75,6 +77,11 @@ void	Request::parse(const std::string& rawRequest)
 			throw std::runtime_error("Invalid Content-Length");
 		this->_body.reserve(content_length);
 		std::getline(stream, this->_body, '\0');
+		printf("*********************1*******************\n\n");
+		printf("Body: %s\n", this->_body.c_str());
+		printf("Body length: %lu\n", this->_body.length());
+		printf("Content-Length: %lu\n", content_length);
+		printf("****************************************\n\n");
 		if (this->_body.length() != content_length)
 			throw std::runtime_error("Body length mismatch");
 	}
@@ -89,8 +96,43 @@ void	Request::parse(const std::string& rawRequest)
 
 void	Request::printRequest(void)
 {
-	std::cout << this->_method << " " << this->_uri << " " << this->_version << "\r\n";
+	std::cout << "=============method, uri, version ===================" << std::endl;
+	std::cout << "_method: " << this->_method << ", _uri: " << this->_uri << ", _version: " << this->_version << "\r\n";
+	std::cout << "============= header ===================" << std::endl;
 	for (std::map<std::string, std::string>::const_iterator it = _header.begin(); it != _header.end(); ++it)
 		std::cout << it->first << ": " << it->second  << "\r\n";
+	std::cout << "=============  body ===================" << std::endl;
 	std::cout << this->_body << std::endl;
+}
+
+// check if the request is a CGI request then return 1 else return 0
+int Request::isCGI(void)
+{
+	// identify if uri contains "cgi-bin"
+	if (this->_uri.find(".py") != std::string::npos)
+		return (1);
+	return (0);
+}
+
+std::string Request::getBody() const {
+	return this->_body;
+}
+
+std::string Request::getMethod() const {
+	return this->_method;
+}
+
+std::string Request::getUri() const {
+	return this->_uri;
+}
+
+std::string Request::getVersion() const {
+	return this->_version;
+}
+
+std::string Request::getHeaderValue(const std::string& key) const {
+	std::map<std::string, std::string>::const_iterator it = this->_header.find(key);
+	if (it == this->_header.end())
+		return "";
+	return it->second;
 }

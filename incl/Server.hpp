@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: lwoiton <lwoiton@student.42prague.com>     +#+  +:+       +#+        */
+/*   By: mnurlybe <mnurlybe@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/16 11:17:56 by lwoiton           #+#    #+#             */
-/*   Updated: 2024/09/01 14:49:42 by lwoiton          ###   ########.fr       */
+/*   Updated: 2024/10/05 17:01:05 by mnurlybe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -36,8 +36,8 @@
 #include "SimpleSocket.hpp"
 #include "Request.hpp"
 #include "Response.hpp"
+#include "Environment.hpp"
 //#include "RequestHandler.hpp"
-
 
 #include <fstream> //TO DELETE AFTER successful routing and Repsonse implementations
 
@@ -58,6 +58,16 @@ class Server
 		void	addToEpoll(int new_fd, int event_flag, int _op);
 		void	handleNewConnection();
 		void	handleExistingConnection(int index_pfds);
+
+		// CGI handling member functions
+		// handleCGIRequest will be called when a request is detected as a CGI request
+		// it will check what request method is used, and based on that it will create the correct environment variables array and args
+		// and call the correct function to handle the request
+		
+		void	handleCGIRequest(int client_fd, Request &req, Response &res);
+		void	handlePOSTCGI(int client_fd, Request &req, Response &res, Environment &env, std::string _path_to_script, char * _argv[]);
+		void	handleGETCGI(int client_fd, Response &res, Environment &env, std::string _path_to_script, char * _argv[]);
+		
 };
 
 #endif

@@ -5,15 +5,14 @@
 class EventLoop
 {
 	public:
+		EventLoop();
+		~EventLoop();
+		void	addFd(int fd, uint32_t events, 
+		void	removeFd(int fd, uint32_t events,
+		void	addClientSocket(
 	private:
-}
-
-void	function(void)
-{
-	if (true)
-	{
-		ok(lol);
-	}
+		int		_epollFd;
+		void	setNonBlocking(ind fd);
 }
 
 #endif

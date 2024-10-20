@@ -94,8 +94,8 @@ void	Server::handleNewConnection(void)
 	if (new_sfd >= 0)
 	{
 		int flags = fcntl(new_sfd, F_GETFL, 0);
-        fcntl(new_sfd, F_SETFL, flags | O_NONBLOCK);
-        addToEpoll(new_sfd, EPOLLIN, EPOLL_CTL_ADD);
+		fcntl(new_sfd, F_SETFL, flags | O_NONBLOCK);
+		addToEpoll(new_sfd, EPOLLIN, EPOLL_CTL_ADD);
 		char remoteIP[INET6_ADDRSTRLEN];
 		std::cout << "server: new connection from " << inet_ntop(remoteaddr.ss_family, get_in_addr((struct sockaddr*)&remoteaddr), remoteIP, INET6_ADDRSTRLEN) << " on socket " << new_sfd << '\n' ;
 	}
@@ -119,9 +119,8 @@ void	Server::handleExistingConnection(int epfd_index)
 			std::cout << "server: socket " << this->_events[epfd_index].data.fd << " hung up!\n";
 		else
 			throw std::runtime_error("recv");
-		
-        addToEpoll(this->_events[epfd_index].data.fd, 0, EPOLL_CTL_DEL);
-        close(this->_events[epfd_index].data.fd);
+		addToEpoll(this->_events[epfd_index].data.fd, 0, EPOLL_CTL_DEL);
+		close(this->_events[epfd_index].data.fd);
 	}
 	else
 	{

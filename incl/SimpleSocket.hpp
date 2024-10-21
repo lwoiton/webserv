@@ -11,6 +11,9 @@
 #include <unistd.h>
 #include <cstdlib>
 
+#include "Utils.hpp"
+#include "Logger.hpp"
+
 #define BACKLOG 10
 
 class SimpleSocket

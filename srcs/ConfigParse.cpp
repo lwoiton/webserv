@@ -64,6 +64,7 @@ ConfigParser::ConfigParser(const char* filename)
     if (config.find("listen") == config.end()) {
         config["listen"] = "8080";  // Default to 8080 if not specified
     }
+    LOG_INFO("Config file loaded successfully");
 }
 
 std::string ConfigParser::getValue(const std::string& key) const

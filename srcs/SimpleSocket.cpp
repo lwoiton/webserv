@@ -63,18 +63,23 @@ int SimpleSocket::create_socket()
             continue;
         }
         else
-            std::cout << "Socket is created." << i << std::endl;
+            LOG_INFO("Socket is created. (fd: " + intToString(socket_fd) + ")");
+        // set socket options to reuse address and port incase of crash or shutdown of server
+        int opt = 1;
+        if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
+            LOG_ERROR("Error: setsockopt(SO_REUSEADDR)");
+            throw std::runtime_error("setsockopt(SO_REUSEADDR) failed");
+        }
 
         // establish connection to a network
         int connection = bind(socket_fd, p->ai_addr, p->ai_addrlen);
         if (connection < 0) {
-            std::cerr << "Error: Bind() " << i << std::endl;
+            LOG_ERROR("Error: bind()");
             close(socket_fd);
             continue;
         }
         else
-            std::cout << "Socket is binded to a network." << i << std::endl;
-
+            LOG_INFO("Socket is bound to a network. (fd: " + intToString(socket_fd) + ")");
         // successfull connection is established. 
         break; 
     }
@@ -95,12 +100,10 @@ int SimpleSocket::listening_socket() {
     int listening = listen(get_socket(), BACKLOG);
 
     if (listening < 0) {
-        std::cout << "Error: Listen()" << std::endl;
+        LOG_ERROR("Error: listen()");
         return (1);
     }
-
-    std::cout << "Socket started listening." << std::endl;
-
+    LOG_INFO("Server is listening on port " + std::string(service) + " with socket " + intToString(socket_fd));
     return (0);
 }
 

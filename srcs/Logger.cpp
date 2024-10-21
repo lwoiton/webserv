@@ -6,74 +6,66 @@
 /*   By: lwoiton <lwoiton@student.42prague.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 11:15:25 by lwoiton           #+#    #+#             */
-/*   Updated: 2024/08/30 14:34:47 by lwoiton          ###   ########.fr       */
+/*   Updated: 2024/10/20 23:10:02 by lwoiton          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Logger.hpp"
 
-Logger::LogLevel Logger::_currentLevel = 
-#ifdef DEBUG
-    Logger::DEBUG
-#else
-    Logger::INFO
-#endif
-;
+Logger* Logger::instance = NULL;
 
-Logger&	Logger::getInstance(void)
-{
-	static Logger	instance;
-	return (instance);
+Logger::Logger() : currentLevel(INFO) {
+    logFile.open("log.txt", std::ios::app);
 }
 
-Logger::Logger()
-{
-	this->_levelStrings[DEBUG] = "DEBUG";
-	this->_levelStrings[INFO] = "INFO";
-	this->_levelStrings[WARNING] = "WARNING";
-	this->_levelStrings[ERROR] = "ERROR";
+Logger* Logger::getInstance() {
+    if (instance == NULL) {
+        instance = new Logger();
+    }
+    return instance;
 }
 
-Logger::~Logger()
-{
-    if (this->_logFile.is_open())
-        this->_logFile.close();
+void Logger::setLogLevel(LogLevel level) {
+    currentLevel = level;
 }
 
-void	Logger::setLogFile(const std::string& log_filename)
-{
-	if (this->_logFile.is_open())
-		this->_logFile.close();
-	this->_logFile.open(log_filename.c_str(), std::ios::app);
+std::string Logger::getTimestamp() {
+    time_t now = time(0);
+    struct tm* timeinfo = localtime(&now);
+    char buffer[80];
+    strftime(buffer, sizeof(buffer), "%Y-%m-%d %X", timeinfo);
+    return std::string(buffer);
 }
 
-void	Logger::setLogLevel(LogLevel level)
-{
-	this->_currentLevel = level;
+std::string Logger::getLevelString(LogLevel level) {
+    switch(level) {
+        case DEBUG: return "DEBUG";
+        case INFO: return "INFO";
+        case WARNING: return "WARNING";
+        case ERROR: return "ERROR";
+        default: return "UNKNOWN";
+    }
 }
 
-void	Logger::log(LogLevel level, const std::string& message)
-{
-	if (level >= this->_currentLevel)
-	{
-		std::string	logMessage = getCurrentTimestamp() + " [" + _levelStrings[level] + "]: " + message;
-		writeLog(logMessage);
-	}
+void Logger::log(LogLevel level, const std::string& message, const char* file, int line) {
+    if (level < currentLevel) return;
+
+    std::string output = "[" + getTimestamp() + "]" + " [" + getLevelString(level) + "] " + message;
+    
+    if (file != NULL && line != -1 && (level == WARNING || level == ERROR)) {
+        std::stringstream ss;
+        ss << " (File: " << file << ", Line: " << line << ")";
+        output += ss.str();
+    }
+    logFile << output << std::endl;
+	if (level == ERROR || level == WARNING)
+		std::cerr << output << std::endl;
+	else
+    	std::cout << output << std::endl;
 }
 
-std::string	Logger::getCurrentTimestamp() const
-{
-	time_t	now = time(0);
-	struct tm	tstruct;
-	char	buf[80];
-	tstruct = *localtime(&now);
-	strftime(buf, sizeof(buf), "%Y-%m-%d %X", &tstruct);
-	return (buf);	
-}
-
-void	Logger::writeLog(const std::string& message)
-{
-	if (this->_logFile.is_open())
-		this->_logFile << message << std::endl;
-	std::cout << message << std::endl;
+Logger::~Logger() {
+    if (logFile.is_open()) {
+        logFile.close();
+    }
 }

@@ -1,36 +1,22 @@
 /* ************************************************************************** */
 /*                                                                            */
 /*                                                        :::      ::::::::   */
-/*   ConfigParser.hpp                                   :+:      :+:    :+:   */
+/*   Utils.hpp                                          :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
 /*   By: lwoiton <lwoiton@student.42prague.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
-/*   Created: 2024/08/28 09:04:17 by lwoiton           #+#    #+#             */
-/*   Updated: 2024/10/21 11:01:15 by lwoiton          ###   ########.fr       */
+/*   Created: 2024/10/21 10:07:20 by lwoiton           #+#    #+#             */
+/*   Updated: 2024/10/21 10:08:08 by lwoiton          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #pragma once
-#ifndef CONFIGPARSER_HPP
-# define CONFIGPARSER_HPP
+#ifndef UTILS_HPP
+# define UTILS_HPP
 
-#include <map>
 #include <string>
-#include <fstream>
 #include <sstream>
-#include <iostream>
 
-#include "Logger.hpp"
+std::string intToString(int number);
 
-class ConfigParser
-{
-	private:
-		std::map<std::string, std::string> config;
-	public:
-					ConfigParser(void);
-					ConfigParser(const char* filename);
-		std::string	getValue(const std::string& key) const;
-		void		printConfig(void) const;
-};
-
-#endif
+#endif // UTILS_HPP

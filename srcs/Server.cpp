@@ -6,7 +6,7 @@
 /*   By: lwoiton <lwoiton@student.42prague.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/01 14:10:31 by lwoiton           #+#    #+#             */
-/*   Updated: 2024/10/20 14:50:53 by lwoiton          ###   ########.fr       */
+/*   Updated: 2024/10/21 16:52:41 by lwoiton          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -47,39 +47,54 @@ void    Server::addToEpoll(int new_fd, int event_flag, int _op)
 void    Server::run(void)
 {
 	int events_num = 0;
-    while (!g_signal_received)
-    {
-        events_num = epoll_wait(this->_epoll_fd, this->_events, MAX_NUM_OF_EVENTS, -1);
-        if (events_num < 0)
-            throw std::runtime_error(strerror(errno));
-        for (int i = 0; i < events_num; ++i)
-        {
-            if (this->_events[i].data.fd == this->_serverSocket->get_socket())
-            {
-                handleNewConnection();
-            }
-            else
-            {
-                handleExistingConnection(i);
-            }
-        }
-    }
-	std::cerr << "shutdown started\n";
+	while (!g_signal_received)
+	{
+		events_num = epoll_wait(this->_epoll_fd, this->_events, MAX_NUM_OF_EVENTS, -1);
+		if (events_num < 0)
+		{
+			if (errno == EINTR && g_signal_received)
+				break;
+			else
+			{
+				throw std::runtime_error(strerror(errno));
+			}
+		}
+		for (int i = 0; i < events_num; ++i)
+		{
+			if (this->_events[i].data.fd == this->_serverSocket->get_socket())
+			{
+				handleNewConnection();
+			}
+			else
+			{
+				handleExistingConnection(i);
+			}
+		}
+	}
 	this->shutdown(events_num);
 }
 
-void	Server::shutdown(int events_num)
+void Server::shutdown(int events_num)
 {
-	int index = 0;
-	while (events_num-- > 0)
-	{
-		close(this->_events[index++].data.fd);
-	}
-	close(this->_epoll_fd);
-	close(this->_serverSocket->get_socket());
-	delete this->_serverSocket;
-	std::cerr << "About to exit\n";
-	exit(EXIT_FAILURE);
+    int index = 0;
+    while (events_num-- > 0)
+    {
+        if (close(this->_events[index++].data.fd) < 0) {
+			LOG_ERROR("Error closing fd: " + std::string(strerror(errno)));
+			throw std::runtime_error("Error closing fd");
+        }
+    }
+    if (close(this->_epoll_fd) < 0) {
+		LOG_ERROR("Error closing epoll fd: " + std::string(strerror(errno)));
+		throw std::runtime_error("Error closing epoll fd");
+    }
+    if (close(this->_serverSocket->get_socket()) < 0) {
+		LOG_ERROR("Error closing server socket: " + std::string(strerror(errno)));
+		throw std::runtime_error("Error closing server socket");
+    }
+    delete this->_serverSocket;
+    LOG_INFO("Server shutdown");
+    exit(EXIT_SUCCESS);  // Use EXIT_SUCCESS instead of EXIT_FAILURE if this is a normal shutdown
 }
 
 void *get_in_addr(struct sockaddr *sa)
@@ -111,11 +126,11 @@ void	Server::handleNewConnection(void)
 	if (new_sfd >= 0)
 	{
 		int flags = fcntl(new_sfd, F_GETFL, 0);
-        fcntl(new_sfd, F_SETFL, flags | O_NONBLOCK);
-        addToEpoll(new_sfd, EPOLLIN, EPOLL_CTL_ADD);
+	        fcntl(new_sfd, F_SETFL, flags | O_NONBLOCK);
+		addToEpoll(new_sfd, EPOLLIN, EPOLL_CTL_ADD);
 		char remoteIP[INET6_ADDRSTRLEN];
 		std::cout << "============================" << std::endl;
-		std::cout << "server: new connection from " << inet_ntop(remoteaddr.ss_family, get_in_addr((struct sockaddr*)&remoteaddr), remoteIP, INET6_ADDRSTRLEN) << " on socket " << new_sfd << '\n' ;
+		LOG_INFO("New connection from " + std::string(inet_ntop(remoteaddr.ss_family, get_in_addr((struct sockaddr*)&remoteaddr), remoteIP, INET6_ADDRSTRLEN)) + " on socket " + intToString(new_sfd));
 		std::cout << "============================" << std::endl;
 	}
 }
@@ -127,21 +142,32 @@ std::string sizeToString(size_t value)
     return oss.str();
 }
 
+
+// Temporary buffer
+// load into proper buffer
+
+// parse the proper buffer once the request is complete
+
+
 void	Server::handleExistingConnection(int epfd_index)
 {
-	char	buf[10000];
-	int	nbytes = recv(this->_events[epfd_index].data.fd, buf, sizeof(buf), 0);
-
-	if (nbytes <= 0)
+	int	fd;
+	
+	fd = this->_events[epfd_index].data.fd;
+	if (this->_events[epfd_index].events & EPOLLIN)
 	{
-		if (nbytes == 0)
-			std::cout << "server: socket " << this->_events[epfd_index].data.fd << " hung up!\n";
-		else
-			throw std::runtime_error("recv");
-		
-        addToEpoll(this->_events[epfd_index].data.fd, 0, EPOLL_CTL_DEL);
-        close(this->_events[epfd_index].data.fd);
+		handleRecv(epfd_index);
 	}
+	else if (this->_events[epfd_index].events & EPOLLOUT)
+	{
+		handleSend(epfd_index);
+	}
+	else
+	{
+		handleError(epfd_index);
+	}
+}
+	
 	else
 	{
 		Request		req;
@@ -172,6 +198,38 @@ void	Server::handleExistingConnection(int epfd_index)
 				throw std::runtime_error(strerror(errno));
 		}
 	}
+}
+
+void	Server::handleRecv(int epfd_index)
+{
+	char	buf[10000];
+	int	nbytes = recv(this->_events[epfd_index].data.fd, buf, sizeof(buf), 0);
+
+	if (nbytes <= 0)
+	{
+		if (nbytes == 0)
+			LOG_INFO("server: socket " + intToString(this->_events[epfd_index].data.fd) + " hung up!");
+		else
+			throw std::runtime_error("recv");
+        addToEpoll(this->_events[epfd_index].data.fd, 0, EPOLL_CTL_DEL);
+        close(this->_events[epfd_index].data.fd);
+	}
+	Request req;
+
+	buf[nbytes] = '\0'; // null-terminate the received data as without it there is a cached data;
+	req.parse(buf);
+	LOG_INFO("=============printRequest===============");
+	req.printRequest();
+	LOG_INFO("========================================");
+	std::cout << "=============printRequest===============" << std::endl;
+	req.printRequest();
+	std::cout << "========================================" << std::endl;
+	
+}
+
+void	Server::handleSend(int epfd_index)
+{
+	
 }
 
 void Server::handleCGIRequest(int client_fd, Request &req, Response &res)
@@ -219,7 +277,7 @@ void Server::handleGETCGI(int client_fd, Response &res, Environment &env, std::s
 				dup2(pipefd[1], STDOUT_FILENO);
 				close(pipefd[1]);
 				if (execve(_path_to_script.c_str(), _argv, env.getEnv()) == -1)
-					printf("EXECVE FAILURE\n");
+					LOG_ERROR("EXECVE FAILURE");
 			}
 			else // parent
 			{
@@ -278,7 +336,7 @@ void Server::handlePOSTCGI(int client_fd, Request &req, Response &res, Environme
 		close(cgi_pipe[1]); // Close the original write end after dup2
 		
 		if (execve(_path_to_script.c_str(), _argv, env.getEnv()) == -1)
-			printf("EXECVE FAILURE\n");
+			LOG_ERROR("EXECVE FAILURE");
 	}
 	else // parent
 	{		

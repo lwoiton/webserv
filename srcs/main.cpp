@@ -6,29 +6,34 @@
 /*   By: lwoiton <lwoiton@student.42prague.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/19 13:37:12 by lwoiton           #+#    #+#             */
-/*   Updated: 2024/10/20 14:48:42 by lwoiton          ###   ########.fr       */
+/*   Updated: 2024/10/21 12:20:28 by lwoiton          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
 #include "Server.hpp"
 
-int g_signal_received = 0;
+volatile sig_atomic_t g_signal_received = 0;
 
-void	handle_signal(int __attribute__((unused)) signum)
+void signalHandler(int signum)
 {
-	// if (signalReceived == 0)
-	std::cerr << "signal received\n";
-	g_signal_received = 1;
+	
+    g_signal_received = 1;
+	std::cout << std::endl;
+	if (signum == SIGINT)
+		LOG_INFO("SIGINT received");
+	else if (signum == SIGTERM)
+		LOG_INFO("SIGTERM received");
+	else if (signum == SIGQUIT)
+		LOG_INFO("SIGQUIT received");
 }
 
 int	main(void)
 {
-	Logger& logger = Logger::getInstance();
-	logger.LOG_INFO("TEST");
 	Server	server("server_config.txt");
 
-	signal(SIGINT, handle_signal);
-	signal(SIGQUIT, handle_signal);
+	signal(SIGINT, signalHandler);
+	signal(SIGTERM, signalHandler);
+	signal(SIGQUIT, signalHandler);
 	try
 	{
 		server.run();

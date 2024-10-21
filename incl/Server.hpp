@@ -6,7 +6,7 @@
 /*   By: lwoiton <lwoiton@student.42prague.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/16 11:17:56 by lwoiton           #+#    #+#             */
-/*   Updated: 2024/10/20 14:45:19 by lwoiton          ###   ########.fr       */
+/*   Updated: 2024/10/21 12:01:24 by lwoiton          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -21,6 +21,7 @@
 #include <cstring>
 #include <cerrno>
 #include <unistd.h>
+#include <cstdlib>
 
 
 #include <netdb.h>
@@ -31,6 +32,7 @@
 
 #include <arpa/inet.h> // for inet_ntop()
 
+#include "Utils.hpp"
 #include "Logger.hpp"
 #include "ConfigParser.hpp"
 #include "SimpleSocket.hpp"
@@ -43,7 +45,9 @@
 
 #define MAX_NUM_OF_EVENTS 100
 
-extern int g_signal_received;
+extern volatile sig_atomic_t g_signal_received;
+
+void signalHandler(int __attribute__((unused)) signum);
 
 class Server
 {

@@ -6,7 +6,7 @@
 /*   By: lwoiton <lwoiton@student.42prague.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/01 14:10:31 by lwoiton           #+#    #+#             */
-/*   Updated: 2024/10/21 16:52:41 by lwoiton          ###   ########.fr       */
+/*   Updated: 2024/10/21 21:35:43 by lwoiton          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@ Server::Server(void)
     if (this->_epoll_fd < 0) {
         throw std::runtime_error(strerror(errno));
     }
+	epCTL(this->_serverSocket->get_socket(), EPOLL_CTL_ADD, EPOLLIN);
 }
 
 Server::Server(const char* config_filename)
@@ -30,17 +31,17 @@ Server::Server(const char* config_filename)
     if (this->_epoll_fd < 0) {
         throw std::runtime_error(strerror(errno));
     }
-    addToEpoll(this->_serverSocket->get_socket(), EPOLLIN, EPOLL_CTL_ADD);
-}
+	epCTL(this->_serverSocket->get_socket(), EPOLL_CTL_ADD, EPOLLIN);
+}	
 
 
-void    Server::addToEpoll(int new_fd, int event_flag, int _op)
+void    Server::epCTL(int fd, int _op, int event_flag)
 {
     struct epoll_event  event;
 
     event.events = event_flag;
-    event.data.fd = new_fd;
-    epoll_ctl(this->_epoll_fd, _op, new_fd, &event);
+    event.data.fd = fd;
+    epoll_ctl(this->_epoll_fd, _op, fd, &event);
 }
 
 
@@ -126,8 +127,9 @@ void	Server::handleNewConnection(void)
 	if (new_sfd >= 0)
 	{
 		int flags = fcntl(new_sfd, F_GETFL, 0);
-	        fcntl(new_sfd, F_SETFL, flags | O_NONBLOCK);
-		addToEpoll(new_sfd, EPOLLIN, EPOLL_CTL_ADD);
+	    fcntl(new_sfd, F_SETFL, flags | O_NONBLOCK);
+		epCTL(new_sfd, EPOLL_CTL_ADD, EPOLLIN);
+		this->_conns[new_sfd] = Connection(new_sfd);
 		char remoteIP[INET6_ADDRSTRLEN];
 		std::cout << "============================" << std::endl;
 		LOG_INFO("New connection from " + std::string(inet_ntop(remoteaddr.ss_family, get_in_addr((struct sockaddr*)&remoteaddr), remoteIP, INET6_ADDRSTRLEN)) + " on socket " + intToString(new_sfd));
@@ -156,11 +158,11 @@ void	Server::handleExistingConnection(int epfd_index)
 	fd = this->_events[epfd_index].data.fd;
 	if (this->_events[epfd_index].events & EPOLLIN)
 	{
-		handleRecv(epfd_index);
+		receiveData(epfd_index);
 	}
 	else if (this->_events[epfd_index].events & EPOLLOUT)
 	{
-		handleSend(epfd_index);
+		sendData(epfd_index);
 	}
 	else
 	{
@@ -168,7 +170,7 @@ void	Server::handleExistingConnection(int epfd_index)
 	}
 }
 	
-	else
+/* 	else
 	{
 		Request		req;
 		Response	res;
@@ -198,39 +200,8 @@ void	Server::handleExistingConnection(int epfd_index)
 				throw std::runtime_error(strerror(errno));
 		}
 	}
-}
+} */
 
-void	Server::handleRecv(int epfd_index)
-{
-	char	buf[10000];
-	int	nbytes = recv(this->_events[epfd_index].data.fd, buf, sizeof(buf), 0);
-
-	if (nbytes <= 0)
-	{
-		if (nbytes == 0)
-			LOG_INFO("server: socket " + intToString(this->_events[epfd_index].data.fd) + " hung up!");
-		else
-			throw std::runtime_error("recv");
-        addToEpoll(this->_events[epfd_index].data.fd, 0, EPOLL_CTL_DEL);
-        close(this->_events[epfd_index].data.fd);
-	}
-	Request req;
-
-	buf[nbytes] = '\0'; // null-terminate the received data as without it there is a cached data;
-	req.parse(buf);
-	LOG_INFO("=============printRequest===============");
-	req.printRequest();
-	LOG_INFO("========================================");
-	std::cout << "=============printRequest===============" << std::endl;
-	req.printRequest();
-	std::cout << "========================================" << std::endl;
-	
-}
-
-void	Server::handleSend(int epfd_index)
-{
-	
-}
 
 void Server::handleCGIRequest(int client_fd, Request &req, Response &res)
 {

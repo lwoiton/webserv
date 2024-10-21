@@ -6,7 +6,7 @@
 /*   By: lwoiton <lwoiton@student.42prague.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/16 11:17:56 by lwoiton           #+#    #+#             */
-/*   Updated: 2024/10/21 12:01:24 by lwoiton          ###   ########.fr       */
+/*   Updated: 2024/10/21 21:32:02 by lwoiton          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -16,6 +16,7 @@
 
 #include <iostream>
 #include <vector>
+#include <map>
 #include <exception>
 #include <stdexcept>
 #include <cstring>
@@ -36,10 +37,10 @@
 #include "Logger.hpp"
 #include "ConfigParser.hpp"
 #include "SimpleSocket.hpp"
-#include "Request.hpp"
-#include "Response.hpp"
+#include "Connection.hpp"
+#include "Request.hpp" // try to delete
+#include "Response.hpp" // try to delete
 #include "Environment.hpp"
-//#include "RequestHandler.hpp"
 
 #include <fstream> //TO DELETE AFTER successful routing and Repsonse implementations
 
@@ -55,16 +56,17 @@ class Server
 		SimpleSocket 					*_serverSocket;
 		struct epoll_event				_events[MAX_NUM_OF_EVENTS];
 		int								_epoll_fd;
+		std::map<int, Connection*>		_conns;
 		ConfigParser					_config;
 	public:
 				Server(void);
 				Server(const char* config_filename);
 		void	run();
 		void	shutdown(int events_num);
-		void	initializeSockets(void);
-		void	addToEpoll(int new_fd, int event_flag, int _op);
+		void	epCTL(int fd, int _op, int event_flag);
 		void	handleNewConnection();
 		void	handleExistingConnection(int index_pfds);
+		void	deleteConnection();
 
 		// CGI handling member functions
 		// handleCGIRequest will be called when a request is detected as a CGI request

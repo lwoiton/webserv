@@ -41,7 +41,7 @@ void Environment::createEnv(Request &req, std::string _path_to_script) {
 	AddEnvVar(4, "SERVER_PORT", "8080"); // remove hardcoding
 	
 	if (req.getMethod() == "GET") {
-		AddEnvVar(5, "QUERY_STRING", "first_name=Malhar&last_name=Lathkar"); // remove hardcoding
+		AddEnvVar(5, "QUERY_STRING", "first_name=Madi&last_name=Arman"); // remove hardcoding , this needs to be parsed from URL
 	}
 	else if (req.getMethod() == "POST") {
 		AddEnvVar(5, "CONTENT_TYPE", req.getHeaderValue("Content-Type").c_str());

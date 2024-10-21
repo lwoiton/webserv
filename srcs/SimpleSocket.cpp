@@ -65,6 +65,13 @@ int SimpleSocket::create_socket()
         else
             std::cout << "Socket is created." << i << std::endl;
 
+        // set socket options to reuse address and port incase of crash or shutdown of server
+        int opt = 1;
+        if (setsockopt(socket_fd, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(opt)) < 0) {
+            std::cerr << " Error: setsockopt(SO_REUSEADDR)" << std::endl;
+            throw std::runtime_error("setsockopt(SO_REUSEADDR) failed");
+        }
+
         // establish connection to a network
         int connection = bind(socket_fd, p->ai_addr, p->ai_addrlen);
         if (connection < 0) {

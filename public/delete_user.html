@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Delete User</title>
+    <script>
+        async function deleteUser() {
+            const firstName = document.getElementById("firstName").value;
+            const lastName = document.getElementById("lastName").value;
+
+            // Construct the user identifier, for example:
+            const userIdentifier = `${firstName}-${lastName}`; // Customize how you identify the user
+
+            try {
+                const response = await fetch(`/delete_user/${userIdentifier}`, {
+                    method: 'DELETE'
+                });
+
+                // Check the response status
+                if (response.ok) {
+                    const message = await response.text();
+                    alert("Success: " + message);
+                } else {
+                    alert("Error: " + response.status + " " + response.statusText);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert("An error occurred while deleting the user.");
+            }
+        }
+    </script>
+</head>
+<body>
+    <h1>Delete a User from Database</h1>
+    <label for="firstName">First Name:</label><br>
+    <input type="text" id="firstName" name="firstName" required><br><br>
+
+    <label for="lastName">Last Name:</label><br>
+    <input type="text" id="lastName" name="lastName" required><br><br>
+
+    <button onclick="deleteUser()">Delete User</button>
+</body>
+</html>

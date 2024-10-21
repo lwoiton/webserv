@@ -6,7 +6,7 @@
 /*   By: mnurlybe <mnurlybe@student.42.fr>          +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/01 14:10:31 by lwoiton           #+#    #+#             */
-/*   Updated: 2024/10/06 13:54:09 by mnurlybe         ###   ########.fr       */
+/*   Updated: 2024/10/21 20:31:01 by mnurlybe         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -147,8 +147,8 @@ void	Server::handleExistingConnection(int epfd_index)
 			res.setStatus(200, "OK");
 			res.addHeader("Content-Type", "text/html");
 			// res.setBody(readFile("./public/index.html"));
-			res.setBody(readFile("./public/form.html"));
-			// res.setBody(readFile("./public/upload_file.html"));
+			// res.setBody(readFile("./public/form.html"));
+			res.setBody(readFile("./public/delete_user.html"));
 			res.addHeader("Content-Length", sizeToString(res.getBody().length()));
 			std::string str = res.serialize();
 			if (send(this->_events[epfd_index].data.fd, str.c_str(), str.length(), 0) == -1)
@@ -167,8 +167,8 @@ void Server::handleCGIRequest(int client_fd, Request &req, Response &res)
 			printf("****************************************\n\n");
 
 			Environment env(9);
-			std::string _path_to_script = "./var/www" + req.getUri();
-			
+			// std::string _path_to_script = "./var/www" + req.getUri();
+			std::string _path_to_script = "./var/www/cgi-bin/hello_get.py";
 			env.createEnv(req, _path_to_script);
 			char * _argv[] = {const_cast<char*>(_path_to_script.c_str()), NULL}; 
 
@@ -178,7 +178,6 @@ void Server::handleCGIRequest(int client_fd, Request &req, Response &res)
 			else if (req.getMethod() == "POST") {
 				handlePOSTCGI(client_fd, req, res, env, _path_to_script, _argv);	
 			}
-	
 }
 
 void Server::handleGETCGI(int client_fd, Response &res, Environment &env, std::string _path_to_script, char * _argv[])

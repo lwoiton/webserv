@@ -6,10 +6,11 @@
 /*   By: lwoiton <lwoiton@student.42prague.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/30 10:56:44 by lwoiton           #+#    #+#             */
-/*   Updated: 2024/10/20 22:51:52 by lwoiton          ###   ########.fr       */
+/*   Updated: 2024/10/22 14:57:49 by lwoiton          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
+#pragma once
 #ifndef LOGGER_HPP
 #define LOGGER_HPP
 

@@ -38,3 +38,30 @@ SIGINT received
 [2024-10-21 12:20:32] [INFO] Server is listening on port 8080 with socket 3
 [2024-10-21 12:20:33] [INFO] SIGINT received
 [2024-10-21 12:20:33] [INFO] Server shutdown
+[2024-10-22 15:01:06] [INFO] Config file loaded successfully
+[2024-10-22 15:01:06] [INFO] Socket is created. (fd: 3)
+[2024-10-22 15:01:06] [INFO] Socket is bound to a network. (fd: 3)
+[2024-10-22 15:01:06] [INFO] Server is listening on port 8080 with socket 3
+[2024-10-22 15:01:21] [INFO] Connection established.
+[2024-10-22 15:01:21] [INFO] New connection from 127.0.0.1 on socket 6
+[2024-10-22 15:01:22] [INFO] Request successfully received.
+[2024-10-22 15:01:22] [INFO] Request parsed succesfully!
+[2024-10-22 15:02:05] [INFO] SIGINT received
+[2024-10-22 15:02:05] [INFO] Server shutdown
+[2024-10-22 15:15:04] [INFO] Config file loaded successfully
+[2024-10-22 15:15:04] [INFO] Socket is created. (fd: 3)
+[2024-10-22 15:15:04] [INFO] Socket is bound to a network. (fd: 3)
+[2024-10-22 15:15:04] [INFO] Server is listening on port 8080 with socket 3
+[2024-10-22 15:15:07] [INFO] Connection established.
+[2024-10-22 15:15:07] [INFO] New connection from 127.0.0.1 on socket 6
+[2024-10-22 15:15:08] [INFO] Request successfully received.
+[2024-10-22 15:15:08] [INFO] Request parsed succesfully!
+[2024-10-22 15:15:08] [INFO] Processsing.....
+[2024-10-22 15:15:08] [INFO] Static request detected
+[2024-10-22 15:15:08] [INFO] Generating HTTP response
+[2024-10-22 15:15:08] [INFO] Generating HTTP response
+[2024-10-22 15:15:08] [ERROR] send() (File: srcs/Connection.cpp, Line: 71)
+[2024-10-22 15:15:08] [INFO] Connection closed!
+[2024-10-22 15:15:08] [INFO] Connection closed on socket 6
+[2024-10-22 15:15:43] [INFO] SIGINT received
+[2024-10-22 15:15:43] [INFO] Server shutdown

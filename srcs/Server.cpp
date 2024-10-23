@@ -6,7 +6,7 @@
 /*   By: lwoiton <lwoiton@student.42prague.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/01 14:10:31 by lwoiton           #+#    #+#             */
-/*   Updated: 2024/10/21 21:35:43 by lwoiton          ###   ########.fr       */
+/*   Updated: 2024/10/22 16:33:12 by lwoiton          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -68,7 +68,7 @@ void    Server::run(void)
 			}
 			else
 			{
-				handleExistingConnection(i);
+				handleExistingConnection(this->_events[i]);
 			}
 		}
 	}
@@ -106,15 +106,6 @@ void *get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-std::string readFile(const std::string& filename)
-{
-	std::ifstream file(filename.c_str());
-	if (!file.is_open()) {
-		return "<html><body><h1>404 Not Found</h1></body></html>";
-	}
-	return std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-}
-
 void	Server::handleNewConnection(void)
 {
 	int	new_sfd;
@@ -129,7 +120,7 @@ void	Server::handleNewConnection(void)
 		int flags = fcntl(new_sfd, F_GETFL, 0);
 	    fcntl(new_sfd, F_SETFL, flags | O_NONBLOCK);
 		epCTL(new_sfd, EPOLL_CTL_ADD, EPOLLIN);
-		this->_conns[new_sfd] = Connection(new_sfd);
+		this->_conns[new_sfd] = new Connection(new_sfd);
 		char remoteIP[INET6_ADDRSTRLEN];
 		std::cout << "============================" << std::endl;
 		LOG_INFO("New connection from " + std::string(inet_ntop(remoteaddr.ss_family, get_in_addr((struct sockaddr*)&remoteaddr), remoteIP, INET6_ADDRSTRLEN)) + " on socket " + intToString(new_sfd));
@@ -137,12 +128,23 @@ void	Server::handleNewConnection(void)
 	}
 }
 
-std::string sizeToString(size_t value)
+void	Server::closeConnection(int fd)
 {
-    std::ostringstream oss;
-    oss << value;
-    return oss.str();
+	epCTL(fd, EPOLL_CTL_DEL, 0);
+	close(fd);
+	
+	std::map<int, Connection*>::iterator it = _conns.find(fd);
+	if (it == _conns.end())
+	{
+		LOG_ERROR("Connection not found");
+		return;
+	}
+	delete it->second;
+	_conns.erase(it);
+	LOG_INFO("Connection closed on socket " + intToString(fd));
 }
+
+
 
 
 // Temporary buffer
@@ -151,24 +153,45 @@ std::string sizeToString(size_t value)
 // parse the proper buffer once the request is complete
 
 
-void	Server::handleExistingConnection(int epfd_index)
+void	Server::handleExistingConnection(struct epoll_event& ee)
 {
 	int	fd;
 	
-	fd = this->_events[epfd_index].data.fd;
-	if (this->_events[epfd_index].events & EPOLLIN)
+	fd = ee.data.fd;
+	std::map<int, Connection*>::iterator it = _conns.find(fd);
+	if (it == _conns.end())
 	{
-		receiveData(epfd_index);
+		LOG_ERROR("Connection not found");
+		return;
 	}
-	else if (this->_events[epfd_index].events & EPOLLOUT)
+	if (ee.events & EPOLLIN)
 	{
-		sendData(epfd_index);
+		int ret = it->second->receiveData();
+		if (ret == 0)
+		{
+			closeConnection(fd);
+		}
+		else if (ret == -1)
+		{
+			LOG_ERROR("Error receiving data");
+		}
+		else
+		{
+			it->second->parseRequest();
+			epCTL(ee.data.fd, EPOLL_CTL_MOD, EPOLLIN | EPOLLOUT);
+		}
+	}
+	else if (ee.events & EPOLLOUT)
+	{
+		it->second->sendData();
+		epCTL(ee.data.fd, EPOLL_CTL_MOD, EPOLLIN);
 	}
 	else
 	{
-		handleError(epfd_index);
+		LOG_ERROR("Unknown event");
 	}
 }
+
 	
 /* 	else
 	{

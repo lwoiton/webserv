@@ -6,7 +6,7 @@
 /*   By: lwoiton <lwoiton@student.42prague.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/10/21 18:51:45 by lwoiton           #+#    #+#             */
-/*   Updated: 2024/10/21 21:07:29 by lwoiton          ###   ########.fr       */
+/*   Updated: 2024/10/22 15:14:56 by lwoiton          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -23,11 +23,12 @@ Connection::~Connection(void)
     LOG_INFO("Connection closed!");
 }
 
-ssize_t	Connection::receiveData(void) : _state(RECV_DATA)
+ssize_t	Connection::receiveData(void)
 {
     char    buf[4096];
     ssize_t nbytes;
     
+    this->_state = RECV_DATA;
     while (true)
     {
         nbytes = recv(this->_sockfd, buf, sizeof(buf), 0);
@@ -46,7 +47,7 @@ ssize_t	Connection::receiveData(void) : _state(RECV_DATA)
             else
             {
                 LOG_ERROR("recv()");
-                return (-1); // Error
+                return (-1); // Error occoured
             }
         }
     }
@@ -54,12 +55,12 @@ ssize_t	Connection::receiveData(void) : _state(RECV_DATA)
 
 ssize_t	Connection::sendData(void)
 {
-    this->_state(SEND_DATA);
+    this->_state = SEND_DATA;
     while (!this->_writeBuffer.empty())
     {
-        ssize_t sent = send(this->_sockfd, this->_writeBuffer, this->_writeBuffer.size(), 0);
+        ssize_t sent = send(this->_sockfd, &this->_writeBuffer[0], this->_writeBuffer.size(), 0);
         if (sent > 0)
-            this->_writeBuffer.erase(this->_writeBuffer.begin(), this->writeBuffer.end() + sent);
+            this->_writeBuffer.erase(this->_writeBuffer.begin(), this->_writeBuffer.end() + sent);
         else if (sent == -1)
         {
             if (errno == EAGAIN || errno == EWOULDBLOCK)
@@ -71,7 +72,7 @@ ssize_t	Connection::sendData(void)
             return (-1); // Error occoured
         }
     }
-    this->_state(IDLE);
+    this->_state = IDLE;
     LOG_INFO("Response sent succesfully");
     return (0); // All data send
 }
@@ -79,15 +80,34 @@ ssize_t	Connection::sendData(void)
 void	Connection::parseRequest(void)
 {
     this->_state = PARSE_REQUEST;
-    this->_req = Request(this->_readBuffer);
-    this->_req.parse();
-    this->_req.printrequest();
+    this->_req = Request();
+    std::string rawRequest;
+    if (!this->_readBuffer.empty()) {
+        rawRequest.assign(this->_readBuffer.begin(), this->_readBuffer.end());
+    }
+    this->_req.parse(rawRequest);
+    this->_req.printRequest();
     LOG_INFO("Request parsed succesfully!");
+    this->_state = PROCESS_REQUEST;
+    this->processRequest();
 }
 
 void	Connection::processRequest(void)
 {
     LOG_INFO("Processsing.....");
+    if (this->_req.isCGI())
+    {
+        LOG_INFO("CGI request detected");
+        //handleCGIRequest();
+    }
+    else
+    {
+        LOG_INFO("Static request detected");
+        this->generateResponse();
+    }
+    this->_state = SEND_DATA;
+    this->generateResponse();
+    this->sendData();
 }
 
 void	Connection::generateResponse(void)
@@ -96,6 +116,7 @@ void	Connection::generateResponse(void)
     this->_res.setStatus(200, "OK");
     this->_res.addHeader("Content-Type", "text/html");
     this->_res.setBody(readFile("./public/index.html"));
-    this->_res.addHeader("Content-Length", sizeToString(res.getBody().length()));
-	this->_writeBuffer = this->_res.serialize();
+    this->_res.addHeader("Content-Length", sizeToString(_res.getBody().length()));
+	std::string response = this->_res.serialize();
+    this->_writeBuffer.insert(this->_writeBuffer.end(), response.begin(), response.end());
 }

@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Request.hpp                                        :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: julienmoigno <julienmoigno@student.42.f    +#+  +:+       +#+        */
+/*   By: lwoiton <lwoiton@student.42prague.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/29 13:45:16 by lwoiton           #+#    #+#             */
-/*   Updated: 2024/10/03 18:45:27 by julienmoign      ###   ########.fr       */
+/*   Updated: 2024/10/22 14:38:02 by lwoiton          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 

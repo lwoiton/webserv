@@ -6,7 +6,7 @@
 /*   By: lwoiton <lwoiton@student.42prague.com>     +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/16 11:17:56 by lwoiton           #+#    #+#             */
-/*   Updated: 2024/10/21 21:32:02 by lwoiton          ###   ########.fr       */
+/*   Updated: 2024/10/22 15:06:35 by lwoiton          ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -14,35 +14,42 @@
 #ifndef SERVER_HPP
 # define SERVER_HPP
 
-#include <iostream>
-#include <vector>
-#include <map>
-#include <exception>
-#include <stdexcept>
-#include <cstring>
-#include <cerrno>
-#include <unistd.h>
-#include <cstdlib>
+// 1. C++ Standard Library headers
+# include <iostream>
+# include <string>
+# include <vector>
+# include <map>
+# include <fstream>
+# include <sstream>
 
+// 2. C headers through C++ wrappers
+# include <cstring>
+# include <cstdlib>
+# include <cerrno>
 
-#include <netdb.h>
-#include <sys/socket.h>
-#include <sys/types.h>
-#include <sys/epoll.h>
-#include <fcntl.h>
+// 3. System/Socket headers wrapped in extern "C"
+# include <sys/types.h>
+# include <sys/socket.h>
+# include <sys/epoll.h>
+# include <sys/wait.h>
+# include <netdb.h>
+# include <arpa/inet.h>
+# include <netinet/in.h>
+# include <unistd.h>
+# include <fcntl.h>
+# include <signal.h>
 
-#include <arpa/inet.h> // for inet_ntop()
+// 4. Your project headers
+# include "Utils.hpp"
+# include "Connection.hpp"
+# include "SimpleSocket.hpp"
+# include "ConfigParser.hpp"
+# include "Request.hpp"
+# include "Response.hpp"
+# include "Environment.hpp"
+# include "Logger.hpp"
 
-#include "Utils.hpp"
-#include "Logger.hpp"
-#include "ConfigParser.hpp"
-#include "SimpleSocket.hpp"
-#include "Connection.hpp"
-#include "Request.hpp" // try to delete
-#include "Response.hpp" // try to delete
-#include "Environment.hpp"
-
-#include <fstream> //TO DELETE AFTER successful routing and Repsonse implementations
+// Rest of your Server class definition...
 
 #define MAX_NUM_OF_EVENTS 100
 
@@ -65,8 +72,8 @@ class Server
 		void	shutdown(int events_num);
 		void	epCTL(int fd, int _op, int event_flag);
 		void	handleNewConnection();
-		void	handleExistingConnection(int index_pfds);
-		void	deleteConnection();
+		void	handleExistingConnection(struct epoll_event& ee);
+		void	closeConnection(int fd);
 
 		// CGI handling member functions
 		// handleCGIRequest will be called when a request is detected as a CGI request

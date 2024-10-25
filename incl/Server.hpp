@@ -6,7 +6,7 @@
 /*   By: julienmoigno <julienmoigno@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/16 11:17:56 by lwoiton           #+#    #+#             */
-/*   Updated: 2024/10/25 11:22:48 by julienmoign      ###   ########.fr       */
+/*   Updated: 2024/10/25 19:15:39 by julienmoign      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -39,6 +39,7 @@
 #include "Environment.hpp"
 #include "DataBase.hpp"
 #include "RequestProcessor.hpp"
+#include "CGIProcessor.hpp"
 
 #include <fstream> //TO DELETE AFTER successful routing and Repsonse implementations
 

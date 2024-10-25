@@ -17,7 +17,9 @@ class RequestProcessor {
         std::string _endpoint;
         std::map <std::string, std::string> _queryParams;
         void handleGETRequest();
+        void handlePOSTRequest();
         void parseURI(std::string uri);
+        void decodeURI(std::string &uri);
 
     public:
         RequestProcessor(Request *req, Response *res, UserDatabase *userDB);

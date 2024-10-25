@@ -37,25 +37,33 @@ void RequestProcessor::handleGETRequest() {
     std::cout << "{" << this->_endpoint << "}" << std::endl;
     std::cout << "{" << this->_queryParams["username"] << "}" << std::endl;
 
-    if (this->_endpoint == "/") {
+    if (this->_endpoint == "/" || this->_endpoint == "/ravicon.ico") {
         _response->setStatus(200, "OK");
         _response->addHeader("Content-Type", "text/html");
         _response->setBody(readFile("./public/index.html"));
         _response->addHeader("Content-Length", _sizeToString(_response->getBody().length()));
         std::cout << "Request Processor Class: " << std::endl;
         std::cout << "{" << _response->getBody() << "}" << std::endl;
-    }
-    else if (this->_endpoint == "/users/get_user") {
+    } else if (this->_endpoint.find(".html") != std::string::npos) {
+        _response->setStatus(200, "OK"); // this is not correct fully, it should be based on the file
+        _response->addHeader("Content-Type", "text/html");
+        _response->setBody(readFile("./public" + this->_endpoint));
+        _response->addHeader("Content-Length", _sizeToString(_response->getBody().length()));
+    } else if (this->_endpoint == "/users/get_user") {
         std::string res = _usersDB->printUserDetails_html(this->_queryParams["username"]);
         _response->setStatus(200, "OK");
         _response->addHeader("Content-Type", "text/html");
-        _response->addHeader("Content-Length", _sizeToString(res.length()));
         _response->setBody(res);
+        _response->addHeader("Content-Length", _sizeToString(_response->getBody().length()));
     } else {
         _response->setStatus(404, "Not Found");
+        _response->addHeader("Content-Type", "text/html");
+        _response->setBody("<html><body><h1>404 Not Found</h1></body></html>");
+        _response->addHeader("Content-Length", _sizeToString(_response->getBody().length()));
     }
 }
 
+/* Parse URL encoded data */
 void RequestProcessor::parseURI(std::string _uri) {
     std::string uri = _uri;
     size_t pos = uri.find("?");
@@ -85,7 +93,6 @@ void RequestProcessor::parseURI(std::string _uri) {
         this->_queryParams.clear();
     }
 }
-
 
 /* Destructor */
 RequestProcessor::~RequestProcessor() {}

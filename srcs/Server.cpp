@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.cpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mnurlybe <mnurlybe@student.42.fr>          +#+  +:+       +#+        */
+/*   By: julienmoigno <julienmoigno@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/09/01 14:10:31 by lwoiton           #+#    #+#             */
-/*   Updated: 2024/10/21 20:31:01 by mnurlybe         ###   ########.fr       */
+/*   Updated: 2024/10/25 14:18:07 by julienmoign      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -20,6 +20,7 @@ Server::Server(void)
     if (this->_epoll_fd < 0) {
         throw std::runtime_error(strerror(errno));
     }
+	this->_userDatabase = UserDatabase();
 }
 
 Server::Server(const char* config_filename)
@@ -31,6 +32,7 @@ Server::Server(const char* config_filename)
         throw std::runtime_error(strerror(errno));
     }
     addToEpoll(this->_serverSocket->get_socket(), EPOLLIN, EPOLL_CTL_ADD);
+	this->_userDatabase = UserDatabase();
 }
 
 
@@ -73,14 +75,14 @@ void *get_in_addr(struct sockaddr *sa)
     return &(((struct sockaddr_in6*)sa)->sin6_addr);
 }
 
-std::string readFile(const std::string& filename)
-{
-	std::ifstream file(filename.c_str());
-	if (!file.is_open()) {
-		return "<html><body><h1>404 Not Found</h1></body></html>";
-	}
-	return std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
-}
+// std::string readFile(const std::string& filename)
+// {
+// 	std::ifstream file(filename.c_str());
+// 	if (!file.is_open()) {
+// 		return "<html><body><h1>404 Not Found</h1></body></html>";
+// 	}
+// 	return std::string((std::istreambuf_iterator<char>(file)), std::istreambuf_iterator<char>());
+// }
 
 void	Server::handleNewConnection(void)
 {
@@ -143,13 +145,21 @@ void	Server::handleExistingConnection(int epfd_index)
 		}
 		else
 		{
-			// handle the request
-			res.setStatus(200, "OK");
-			res.addHeader("Content-Type", "text/html");
-			// res.setBody(readFile("./public/index.html"));
-			// res.setBody(readFile("./public/form.html"));
-			res.setBody(readFile("./public/delete_user.html"));
-			res.addHeader("Content-Length", sizeToString(res.getBody().length()));
+			// // handle the request
+			// res.setStatus(200, "OK");
+			// res.addHeader("Content-Type", "text/html");
+			// // res.setBody(readFile("./public/index.html"));
+			// // res.setBody(readFile("./public/form.html"));
+			// res.setBody(readFile("./public/delete_user.html"));
+			// res.addHeader("Content-Length", sizeToString(res.getBody().length()));
+			// std::string str = res.serialize();
+			// if (send(this->_events[epfd_index].data.fd, str.c_str(), str.length(), 0) == -1)
+			// 	throw std::runtime_error(strerror(errno));
+
+			RequestProcessor rp(&req, &res, &_userDatabase);
+			rp.processRequest();
+			// std::cout << "Server Class: " << std::endl;
+			// std::cout << "{" << res.getBody() << "}" << std::endl;
 			std::string str = res.serialize();
 			if (send(this->_events[epfd_index].data.fd, str.c_str(), str.length(), 0) == -1)
 				throw std::runtime_error(strerror(errno));

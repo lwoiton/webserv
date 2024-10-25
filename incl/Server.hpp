@@ -3,10 +3,10 @@
 /*                                                        :::      ::::::::   */
 /*   Server.hpp                                         :+:      :+:    :+:   */
 /*                                                    +:+ +:+         +:+     */
-/*   By: mnurlybe <mnurlybe@student.42.fr>          +#+  +:+       +#+        */
+/*   By: julienmoigno <julienmoigno@student.42.f    +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/08/16 11:17:56 by lwoiton           #+#    #+#             */
-/*   Updated: 2024/10/05 17:01:05 by mnurlybe         ###   ########.fr       */
+/*   Updated: 2024/10/25 11:22:48 by julienmoign      ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -37,7 +37,8 @@
 #include "Request.hpp"
 #include "Response.hpp"
 #include "Environment.hpp"
-//#include "RequestHandler.hpp"
+#include "DataBase.hpp"
+#include "RequestProcessor.hpp"
 
 #include <fstream> //TO DELETE AFTER successful routing and Repsonse implementations
 
@@ -50,6 +51,7 @@ class Server
 		struct epoll_event				_events[NUM_OF_EVENTS];
 		int								_epoll_fd;
 		ConfigParser					_config;
+		UserDatabase					_userDatabase;
 	public:
 				Server(void);
 				Server(const char* config_filename);
